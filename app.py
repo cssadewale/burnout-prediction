@@ -39,7 +39,7 @@ def load_model():
         )
         st.stop()
 
-model = load_model()
+model = None
 
 # ── Header ─────────────────────────────────────────────────────────────────────
 st.title("🧠 Employee Burnout Rate Predictor")
@@ -126,6 +126,12 @@ with col2:
 st.markdown("---")
 
 if st.button("🔮 Predict Burn Rate", use_container_width=True, type="primary"):
+
+    # Load lazily so a model deserialization problem cannot prevent the
+    # Streamlit page from rendering. The user sees the error at prediction
+    # time instead of an apparently endless startup screen.
+    with st.spinner("Loading the burnout model..."):
+        model = load_model()
 
     # ── Encode categorical inputs ──────────────────────────────────────────────
     gender_male          = 1 if gender == "Male" else 0

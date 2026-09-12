@@ -16,3 +16,7 @@ The original repository does not include a fitted scaler. The app therefore reta
 ## Artifact compatibility update
 
 The supplied model was serialized with scikit-learn 1.6.1. The deployment requirement is therefore pinned to scikit-learn 1.6.1 instead of 1.5.2, eliminating the InconsistentVersionWarning seen in the Streamlit logs.
+
+## Startup-loading fix
+
+Model deserialization is now lazy: the Streamlit interface renders before the model is loaded, and the artifact is loaded only when the user clicks Predict. This prevents an artifact/import problem from looking like an endless app startup. The attached deployment log showed dependency installation completed successfully and contained no Python exception, so this was added as a defensive startup fix.
