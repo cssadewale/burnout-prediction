@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import joblib
 import pandas as pd
+from pathlib import Path
 
 # ── Page configuration ─────────────────────────────────────────────────────────
 st.set_page_config(
@@ -11,9 +12,32 @@ st.set_page_config(
 )
 
 # ── Load model ─────────────────────────────────────────────────────────────────
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "best_burnout_prediction_model.joblib"
+EXPECTED_FEATURES = [
+    "designation", "resource_allocation", "mental_fatigue_score",
+    "tenure_months", "gender_Male", "company_type_Service",
+    "wfh_setup_available_Yes",
+]
+
 @st.cache_resource
 def load_model():
-    return joblib.load("best_burnout_prediction_model.joblib")
+    try:
+        model = joblib.load(MODEL_PATH)
+        if not hasattr(model, "predict") or not hasattr(model, "feature_names_in_"):
+            raise ValueError("Model is missing prediction or feature-schema metadata")
+        if list(model.feature_names_in_) != EXPECTED_FEATURES:
+            raise ValueError(
+                "Model feature schema does not match the app: "
+                + str(list(model.feature_names_in_))
+            )
+        return model
+    except Exception as exc:
+        st.error(
+            "❌ Burnout model could not be loaded. "
+            f"{type(exc).__name__}: {exc}"
+        )
+        st.stop()
 
 model = load_model()
 
@@ -147,8 +171,13 @@ if st.button("🔮 Predict Burn Rate", use_container_width=True, type="primary")
         features_scaled[col] = (features[col] - lo) / (hi - lo) if hi > lo else 0.0
 
     # ── Predict and clip to valid [0, 1] range ─────────────────────────────────
-    raw_pred   = model.predict(features_scaled)[0]
+    raw_pred   = float(model.predict(features_scaled)[0])
     prediction = float(np.clip(raw_pred, 0.0, 1.0))
+    if raw_pred < 0.0 or raw_pred > 1.0:
+        st.info(
+            f"The raw model output was {raw_pred:.3f}; it was bounded to "
+            "the documented 0–1 burn-rate scale for display."
+        )
 
     # ── Assign risk tier ───────────────────────────────────────────────────────
     if prediction <= 0.33:

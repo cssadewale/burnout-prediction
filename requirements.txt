@@ -1,5 +1,6 @@
-streamlit
-scikit-learn
-pandas
-numpy
-joblib
+# Tested deployment baseline for the saved burnout regressor.
+streamlit==1.45.1
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.5.2
+joblib==1.4.2
