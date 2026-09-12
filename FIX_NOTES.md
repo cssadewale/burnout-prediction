@@ -11,3 +11,8 @@
 ## Remaining model-quality limitation
 
 The original repository does not include a fitted scaler. The app therefore retains the documented training bounds for min-max normalization. The production-grade follow-up is to retrain/export a single pipeline containing preprocessing and the regressor, then remove the manual bounds.
+
+
+## Artifact compatibility update
+
+The supplied model was serialized with scikit-learn 1.6.1. The deployment requirement is therefore pinned to scikit-learn 1.6.1 instead of 1.5.2, eliminating the InconsistentVersionWarning seen in the Streamlit logs.
